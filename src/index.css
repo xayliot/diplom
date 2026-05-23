@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+
+@layer base {
+
+  html {
+    @apply text-base;
+  }
+
+  .text-accessibility {
+    font-size: 18px;
+    line-height: 1.5;
+  }
+
+  .high-contrast {
+    background-color: #000000;
+    color: #FFFFFF;
+  }
+
+  .high-contrast button {
+    background-color: #FFFF00;
+    color: #000000;
+    border: 2px solid #FFFFFF;
+  }
+}
