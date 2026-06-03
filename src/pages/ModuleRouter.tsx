@@ -1,32 +1,37 @@
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MouseModulePage } from './MouseModule/MouseModulePage';
-import { LevelPage } from './MouseModule/LevelPage';
-import { KeyboardModulePage } from './KeyboardModule/LevelPage';
-import { KeyboardLevelPage } from './KeyboardModule/KeyboardModulePage';
+import { KeyboardModulePage } from './KeyboardModule/KeyboardModulePage';
 import { GuiModulePage } from './GuiModule/GuiModulePage';
-import { GuiLevelPage } from './GuiModule/LevelPage';
+
+const LevelPage = lazy(() => import('./LevelPage').then(module => ({ default: module.LevelPage })));
 
 export const ModuleRouter: React.FC = () => {
   return (
-    <Routes>
-      <Route path="mouse">
-        <Route index element={<MouseModulePage />} />
-        <Route path=":levelId" element={<LevelPage />} />
-      </Route>
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen bg-slate-900 text-white">
+        <div className="text-2xl font-bold">Загрузка модуля...</div>
+      </div>
+    }>
+      <Routes>
+        <Route path="mouse">
+          <Route index element={<MouseModulePage />} />
+          <Route path=":levelId" element={<LevelPage />} />
+        </Route>
 
-      <Route path="keyboard">
-        <Route index element={<KeyboardModulePage />} />
-        <Route path=":levelId" element={<KeyboardLevelPage />} />
-      </Route>
+        <Route path="keyboard">
+          <Route index element={<KeyboardModulePage />} />
+          <Route path=":levelId" element={<LevelPage />} />
+        </Route>
 
-      <Route path="gui">
-        <Route index element={<GuiModulePage />} />
-        <Route path=":levelId" element={<GuiLevelPage />} />
-      </Route>
+        <Route path="gui">
+          <Route index element={<GuiModulePage />} />
+          <Route path=":levelId" element={<LevelPage />} />
+        </Route>
 
-      <Route index element={<Navigate to="mouse" replace />} />
-      
-      <Route path="*" element={<Navigate to="mouse" replace />} />
-    </Routes>
+        <Route index element={<Navigate to="mouse" replace />} />
+        <Route path="*" element={<Navigate to="mouse" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
