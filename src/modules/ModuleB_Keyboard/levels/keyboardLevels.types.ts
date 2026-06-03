@@ -1,5 +1,3 @@
-import { PHRASES_LIST } from "../data/phrases";
-import { WORD_LISTS } from "../data/wordLists";
 import type { KeyboardStats } from "../KeyboardTrainer.types";
 
 export interface KeyboardLevelConfig {

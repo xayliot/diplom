@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { StepProps } from './diagnostics.steps.types';
 import type { KeyboardData } from '../Diagnostics.types';
 

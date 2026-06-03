@@ -6,25 +6,20 @@ import { useUserProgress } from '../../hooks/useUserProgress';
 
 export const Diagnostics: React.FC = () => {
   const navigate = useNavigate();
-  // Используем функцию сохранения напрямую из хука
   const { saveDiagnosticResults } = useUserProgress(); 
   
   const [currentStep, setCurrentStep] = useState<DiagnosticStep>('mouse');
   const [results, setResults] = useState<Partial<DiagnosticResults>>({});
 
   const handleStepComplete = (step: keyof DiagnosticResults, data: any) => {
-    // Формируем актуальный набор результатов
     const updatedResults = { ...results, [step]: data };
     setResults(updatedResults);
     
-    // Логика переходов
     if (step === 'mouse') {
       setCurrentStep('keyboard');
     } else if (step === 'keyboard') {
       setCurrentStep('gui');
     } else if (step === 'gui') {
-      // Когда GUI завершен, вызываем сохранение из хука
-      // Теперь диагностика официально считается пройденной
       saveDiagnosticResults(updatedResults); 
       setCurrentStep('result');
     }
@@ -45,19 +40,17 @@ export const Diagnostics: React.FC = () => {
     }
   };
 
-  // Расчет прогресса
   const stepsOrder: DiagnosticStep[] = ['mouse', 'keyboard', 'gui', 'result'];
   const progressPercent = ((stepsOrder.indexOf(currentStep) + 1) / stepsOrder.length) * 100;
 
   return (
     <div className="h-screen flex flex-col bg-slate-50 overflow-hidden font-sans">
-      {/* Хедер */}
       <div className="bg-slate-900 text-white py-4 px-8 flex items-center justify-between border-b-4 border-indigo-500 z-10 shadow-xl">
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
           className="flex items-center gap-2 hover:text-indigo-400 transition-colors font-black uppercase text-[10px] tracking-[0.2em]"
         >
-          <span>← В Дашборд</span>
+          <span>← На главную</span>
         </button>
 
         <div className="flex items-center gap-6">
@@ -78,7 +71,6 @@ export const Diagnostics: React.FC = () => {
         </div>
       </div>
 
-      {/* Контент */}
       <div className="flex-1 relative overflow-y-auto">
         {renderStep()}
       </div>

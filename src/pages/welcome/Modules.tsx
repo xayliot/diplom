@@ -106,7 +106,7 @@ export const ModulesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-16 flex-grow">
+      <div className="container mx-auto px-6 py-16 grow">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-black text-slate-900 mb-4 tracking-tight">
             Программа обучения
@@ -122,14 +122,14 @@ export const ModulesPage: React.FC = () => {
             <div
               key={mod.id}
               className={`
-                flex flex-col bg-white rounded-[32px] shadow-xl shadow-slate-200/50 overflow-hidden 
+                flex flex-col bg-white rounded-4xl shadow-xl shadow-slate-200/50 overflow-hidden 
                 transition-all duration-300 border border-slate-100 relative
-                ${mod.status === 'locked' ? 'grayscale-[0.8]' : 'hover:-translate-y-2 hover:shadow-2xl'}
+                ${mod.status === 'locked' ? 'grayscale-80' : 'hover:-translate-y-2 hover:shadow-2xl'}
               `}
             >
-              <div className={`h-3 bg-gradient-to-r ${mod.color}`} />
+              <div className={`h-3 bg-linear-to-r ${mod.color}`} />
               
-              <div className="p-8 flex flex-col flex-grow">
+              <div className="p-8 flex flex-col grow">
                 <div className="flex justify-between items-center mb-6">
                   <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-4xl shadow-inner">
                     {mod.icon}
@@ -137,7 +137,7 @@ export const ModulesPage: React.FC = () => {
                   {getStatusBadge(mod.status)}
                 </div>
 
-                <div className="flex-grow">
+                <div className="grow">
                   <h2 className="text-sm font-black text-blue-600 uppercase tracking-widest mb-1">
                     {mod.title}
                   </h2>
@@ -174,24 +174,28 @@ export const ModulesPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="mt-20 max-w-4xl mx-auto">
-          <div className="bg-slate-900 rounded-4xl p-10 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 text-8xl opacity-10 select-none">📊</div>
-            <h3 className="text-2xl font-bold mb-6">Ваша статистика</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
-              {[
-                { label: 'Модуль А', val: progress?.completedModules.mouse.accuracy || 0, color: 'text-blue-400' },
-                { label: 'Модуль Б', val: progress?.completedModules.keyboard.accuracy || 0, color: 'text-green-400' },
-                { label: 'Модуль В', val: progress?.completedModules.gui.accuracy || 0, color: 'text-purple-400' }
-              ].map((stat, idx) => (
-                <div key={idx} className="relative">
-                  <div className={`text-4xl font-black ${stat.color} mb-1`}>{stat.val}%</div>
-                  <div className="text-slate-400 font-bold uppercase tracking-widest text-xs">{stat.label}</div>
+        {progress && (
+          <div className="mt-20 max-w-4xl mx-auto">
+            <div className="bg-slate-900 rounded-4xl p-10 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 text-8xl opacity-10 select-none">📊</div>
+              <h3 className="text-2xl font-bold mb-6">Ваша статистика</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-10">
+                <div className="relative">
+                  <div className="text-4xl font-black text-blue-400 mb-1">{progress.completedModules.mouse.accuracy || 0}%</div>
+                  <div className="text-slate-400 font-bold uppercase tracking-widest text-xs">Модуль А</div>
                 </div>
-              ))}
+                <div className="relative">
+                  <div className="text-4xl font-black text-green-400 mb-1">{progress.completedModules.keyboard.accuracy || 0}%</div>
+                  <div className="text-slate-400 font-bold uppercase tracking-widest text-xs">Модуль Б</div>
+                </div>
+                <div className="relative">
+                  <div className="text-4xl font-black text-purple-400 mb-1">{progress.completedModules.gui.accuracy || 0}%</div>
+                  <div className="text-slate-400 font-bold uppercase tracking-widest text-xs">Модуль В</div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

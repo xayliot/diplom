@@ -26,6 +26,12 @@ export const Dashboard: React.FC = () => {
           >
             Запустить диагностику
           </button>
+          <button 
+            onClick={() => navigate('/')}
+            className="w-full mt-4 bg-slate-700 text-slate-300 py-4 rounded-2xl font-bold hover:bg-slate-600 transition-all"
+          >
+            На главную
+          </button>
         </div>
       </div>
     );
@@ -34,9 +40,16 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-sans">
       <div className="max-w-7xl mx-auto">
-        {/* Приветствие */}
         <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
+            <div className="flex items-center gap-4 mb-2">
+              <button 
+                onClick={() => navigate('/')}
+                className="text-slate-400 hover:text-slate-600 font-bold flex items-center gap-2 transition-colors"
+              >
+                ← На главную
+              </button>
+            </div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 uppercase tracking-tighter leading-none">
               Твой Профиль <span className="text-indigo-600">.</span>
             </h1>
@@ -55,9 +68,7 @@ export const Dashboard: React.FC = () => {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Левая колонка */}
           <div className="lg:col-span-8 space-y-8">
-            {/* Карта навыков */}
             <section className="bg-white p-6 md:p-8 rounded-[40px] shadow-sm border border-slate-100">
               <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-8 flex items-center gap-2">
                 <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
@@ -70,7 +81,6 @@ export const Dashboard: React.FC = () => {
                 }} />
             </section>
             
-            {/* Сетка статистики */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Statistics 
                 type="accuracy" 
@@ -93,12 +103,9 @@ export const Dashboard: React.FC = () => {
             </section>
           </div>
 
-          {/* Правая колонка */}
           <div className="lg:col-span-4 space-y-8">
-            {/* Достижения */}
             <Achievements items={progress?.achievements || []} />
             
-            {/* Кнопка быстрого продолжения */}
             <div className="bg-indigo-600 rounded-[40px] p-8 text-white shadow-xl shadow-indigo-100 relative overflow-hidden group">
               <div className="relative z-10">
                 <h3 className="text-2xl font-black uppercase tracking-tighter mb-2 italic">Продолжить?</h3>
@@ -114,14 +121,12 @@ export const Dashboard: React.FC = () => {
                 </button>
               </div>
               
-              {/* Декоративная ракета */}
               <div className="absolute -right-6 -bottom-6 text-9xl opacity-10 group-hover:scale-110 group-hover:-translate-y-2 transition-transform duration-500 pointer-events-none">
                 🚀
               </div>
             </div>
             
-            {/* Мини-совет */}
-            <div className="p-6 rounded-[32px] bg-slate-100 border border-slate-200/50">
+            <div className="p-6 rounded-4xl bg-slate-100 border border-slate-200/50">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Совет системы</p>
               <p className="text-slate-600 text-sm font-medium leading-relaxed">
                 Попробуй улучшить точность в модуле «Мышь», чтобы разблокировать достижение «Снайпер».

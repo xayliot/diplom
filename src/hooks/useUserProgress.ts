@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { UserProgress, ModuleId, ModuleProgress, UserSettings, Achievement } from '../types/user.types';
 
-// Настройки по умолчанию
+
 const defaultSettings: UserSettings = {
   fontSize: 'medium',
   contrast: 'normal',
@@ -11,14 +11,13 @@ const defaultSettings: UserSettings = {
   autoAdvance: false
 };
 
-// Достижения по умолчанию (пустой массив)
+
 const defaultAchievements: Achievement[] = [];
 
 const defaultProgress: UserProgress = {
   userId: 'user-1',
   userName: 'Пользователь',
   
-  // Инициализация новых полей
   diagnosticCompleted: false,
   overallLevel: 1,
   overallAccuracy: 0,
@@ -67,7 +66,6 @@ export const useUserProgress = (userId: string = 'user-1') => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Восстанавливаем даты из строк
         parsed.lastActive = new Date(parsed.lastActive);
         parsed.createdAt = new Date(parsed.createdAt);
         setProgress(parsed);
@@ -88,9 +86,8 @@ export const useUserProgress = (userId: string = 'user-1') => {
   const updated: UserProgress = {
     ...progress,
     diagnosticCompleted: true,
-    overallAccuracy: results.mouse.accuracy, // берем как базовый
+    overallAccuracy: results.mouse.accuracy,
     typingSpeed: results.keyboard.wpm,
-    // Навыки (skills) в Dashboard мы теперь будем вычислять из completedModules
     lastActive: new Date()
   };
   
@@ -132,11 +129,9 @@ export const useUserProgress = (userId: string = 'user-1') => {
     localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
   };
 
-  const unlockAchievement = (achievementId: string) => {
+  const unlockAchievement = (_achievementId: string) => {
     if (!progress) return;
     
-    // Здесь можно добавить логику поиска достижения по ID
-    // или получение из конфига
     
     const updated = {
       ...progress,

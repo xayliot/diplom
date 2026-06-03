@@ -23,3 +23,9 @@ export interface GUIScenario extends BaseLevel {
   steps: ScenarioStep[];
   targetAction: string;
 }
+
+type ScenarioStep = {
+  id: string;
+  title: string;
+  completed: boolean;
+};

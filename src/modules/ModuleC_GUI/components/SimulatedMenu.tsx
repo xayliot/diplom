@@ -11,7 +11,7 @@ interface SimulatedMenuProps {
   activeStep?: number; // Для подсветки нужного пункта по сценарию
 }
 
-export const SimulatedMenu: React.FC<SimulatedMenuProps> = ({ items, activeStep }) => {
+export const SimulatedMenu: React.FC<SimulatedMenuProps> = ({ items }) => {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   return (
