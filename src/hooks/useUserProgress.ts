@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import type { UserProgress, ModuleId, ModuleProgress, UserSettings, Achievement } from '../types/user.types';
-
+import { useState, useEffect, useCallback } from 'react';
+import type { UserProgress, ModuleId, UserSettings, Achievement } from '../types/user.types';
 
 const defaultSettings: UserSettings = {
   fontSize: 'medium',
@@ -10,7 +9,6 @@ const defaultSettings: UserSettings = {
   showHints: true,
   autoAdvance: false
 };
-
 
 const defaultAchievements: Achievement[] = [];
 
@@ -32,7 +30,8 @@ const defaultProgress: UserProgress = {
       maxLevel: 4,
       accuracy: 0,
       completed: false,
-      attempts: 0
+      attempts: 0,
+      levelAccuracies: {}
     },
     keyboard: {
       moduleId: 'keyboard',
@@ -40,7 +39,8 @@ const defaultProgress: UserProgress = {
       maxLevel: 4,
       accuracy: 0,
       completed: false,
-      attempts: 0
+      attempts: 0,
+      levelAccuracies: {}
     },
     gui: {
       moduleId: 'gui',
@@ -48,7 +48,8 @@ const defaultProgress: UserProgress = {
       maxLevel: 3,
       accuracy: 0,
       completed: false,
-      attempts: 0
+      attempts: 0,
+      levelAccuracies: {}
     }
   },
   achievements: defaultAchievements,
@@ -68,6 +69,13 @@ export const useUserProgress = (userId: string = 'user-1') => {
         const parsed = JSON.parse(saved);
         parsed.lastActive = new Date(parsed.lastActive);
         parsed.createdAt = new Date(parsed.createdAt);
+        
+        Object.keys(parsed.completedModules).forEach(key => {
+          if (!parsed.completedModules[key].levelAccuracies) {
+            parsed.completedModules[key].levelAccuracies = {};
+          }
+        });
+        
         setProgress(parsed);
       } catch (e) {
         console.error('Ошибка загрузки прогресса:', e);
@@ -81,37 +89,57 @@ export const useUserProgress = (userId: string = 'user-1') => {
   }, [userId]);
 
   const saveDiagnosticResults = (results: any) => {
-  if (!progress) return;
-  
-  const updated: UserProgress = {
-    ...progress,
-    diagnosticCompleted: true,
-    overallAccuracy: results.mouse.accuracy,
-    typingSpeed: results.keyboard.wpm,
-    lastActive: new Date()
-  };
-  
-  setProgress(updated);
-  localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
-};
-  const updateModuleProgress = (moduleId: ModuleId, data: Partial<ModuleProgress>) => {
     if (!progress) return;
     
-    const updated = {
+    const updated: UserProgress = {
       ...progress,
-      completedModules: {
-        ...progress.completedModules,
-        [moduleId]: {
-          ...progress.completedModules[moduleId],
-          ...data
-        }
-      },
+      diagnosticCompleted: true,
+      overallAccuracy: results.mouse.accuracy,
+      typingSpeed: results.keyboard.wpm,
       lastActive: new Date()
     };
     
     setProgress(updated);
     localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
   };
+
+  const updateModuleProgress = useCallback((moduleType: ModuleId, data: {
+    currentLevel?: number;
+    accuracy?: number;
+    completed?: boolean;
+    attempts?: number;
+    levelId?: string;
+  }) => {
+    setProgress(prev => {
+      if (!prev) return prev;
+      
+      const moduleProgress = prev.completedModules[moduleType];
+      
+      const updated: UserProgress = {
+        ...prev,
+        completedModules: {
+          ...prev.completedModules,
+          [moduleType]: {
+            ...moduleProgress,
+            currentLevel: data.currentLevel ?? moduleProgress.currentLevel,
+            accuracy: data.accuracy ?? moduleProgress.accuracy,
+            completed: data.completed ?? moduleProgress.completed,
+            attempts: data.attempts ?? moduleProgress.attempts,
+            levelAccuracies: {
+              ...moduleProgress.levelAccuracies,
+              ...(data.levelId && data.accuracy !== undefined 
+                ? { [data.levelId]: data.accuracy } 
+                : {}
+              )
+            }
+          }
+        }
+      };
+      
+      localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
+      return updated;
+    });
+  }, [userId]);
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
     if (!progress) return;
@@ -132,7 +160,6 @@ export const useUserProgress = (userId: string = 'user-1') => {
   const unlockAchievement = (_achievementId: string) => {
     if (!progress) return;
     
-    
     const updated = {
       ...progress,
       lastActive: new Date()
@@ -142,13 +169,13 @@ export const useUserProgress = (userId: string = 'user-1') => {
     localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
   };
 
-return { 
-  progress, 
-  loading, 
-  updateModuleProgress,
-  updateSettings,
-  unlockAchievement,
-  saveDiagnosticResults,
-  setProgress 
-};
+  return { 
+    progress, 
+    loading, 
+    updateModuleProgress,
+    updateSettings,
+    unlockAchievement,
+    saveDiagnosticResults,
+    setProgress 
+  };
 };

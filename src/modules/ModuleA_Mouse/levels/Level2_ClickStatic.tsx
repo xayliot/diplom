@@ -1,9 +1,7 @@
 import React, { useEffect, useState, useRef} from 'react';
 import type { LevelProps } from './levels.types';
 import type { Position, Target } from '../MouseTrainer.types';
-import { 
-  generateCenteredTargets
-} from '../utils/targetGenerator';
+import { generateCenteredTargets } from '../utils/targetGenerator';
 
 export const Level2_ClickStatic: React.FC<LevelProps> = ({
   level,
@@ -27,11 +25,11 @@ export const Level2_ClickStatic: React.FC<LevelProps> = ({
     show: false,
     position: null
   });
-  const [showCompletion, setShowCompletion] = useState(false);
-  const [finalStats, setFinalStats] = useState({ hits: 0, misses: 0 });
   const [hitCount, setHitCount] = useState(0);
   const [missCount, setMissCount] = useState(0);
   const [showStartPrompt, setShowStartPrompt] = useState(true);
+  const [isLevelComplete, setIsLevelComplete] = useState(false);
+  const [startTime] = useState(Date.now());
   
   const containerRef = useRef<HTMLDivElement>(null);
   const spawnTimerRef = useRef<ReturnType<typeof setTimeout>>(0);
@@ -43,11 +41,11 @@ export const Level2_ClickStatic: React.FC<LevelProps> = ({
     if (!isActive) {
       setTargets([]);
       setCurrentIndex(0);
-      setShowCompletion(false);
       setHitCount(0);
       setMissCount(0);
       setMissFeedback({ show: false, position: null });
       setShowStartPrompt(true);
+      setIsLevelComplete(false);
       return;
     }
 
@@ -133,7 +131,7 @@ export const Level2_ClickStatic: React.FC<LevelProps> = ({
         
         setTimeout(() => {
           setMissFeedback({ show: false, position: null });
-        }, 300);
+        }, 500);
       }
     };
 
@@ -146,82 +144,18 @@ export const Level2_ClickStatic: React.FC<LevelProps> = ({
   }, [isActive, targets, onTargetHit, onTargetMiss]);
 
   useEffect(() => {
-    if (currentIndex === allTargets.length && targets.length === 0) {
-      setFinalStats({ hits: hitCount, misses: missCount });
+    if (currentIndex === allTargets.length && targets.length === 0 && !isLevelComplete) {
+      setIsLevelComplete(true);
       
       const totalAttempts = hitCount + missCount;
       const accuracy = totalAttempts > 0 ? (hitCount / totalAttempts) * 100 : 0;
+      const timeElapsed = (Date.now() - startTime) / 1000;
       
-      if (accuracy >= level.requiredAccuracy) {
-        setShowCompletion(true);
-      }
+      onComplete({ accuracy, timeElapsed });
     }
-  }, [currentIndex, allTargets.length, targets.length, hitCount, missCount, level.requiredAccuracy]);
-
-  useEffect(() => {
-    if (currentIndex === allTargets.length && targets.length === 0 && !showCompletion) {
-      const totalAttempts = hitCount + missCount;
-      const accuracy = totalAttempts > 0 ? (hitCount / totalAttempts) * 100 : 0;
-      
-      if (accuracy < level.requiredAccuracy) {
-        setShowCompletion(true);
-      }
-    }
-  }, [currentIndex, allTargets.length, targets.length, hitCount, missCount, level.requiredAccuracy, showCompletion]);
+  }, [currentIndex, allTargets.length, targets.length, hitCount, missCount, isLevelComplete, onComplete, startTime]);
 
   const activeCount = targets.filter(t => t.isActive).length;
-
-  if (showCompletion) {
-    const totalAttempts = finalStats.hits + finalStats.misses;
-    const accuracy = totalAttempts > 0 ? (finalStats.hits / totalAttempts) * 100 : 0;
-    const isPassed = accuracy >= level.requiredAccuracy;
-
-    return (
-      <div className="relative w-full h-full min-h-125 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-        <div className="bg-white p-10 rounded-2xl shadow-2xl text-center max-w-lg border-2 border-gray-200">
-          <div className="text-7xl mb-6">{isPassed ? '🏆' : '📊'}</div>
-          <h2 className={`text-3xl font-bold mb-4 ${isPassed ? 'text-green-700' : 'text-orange-600'}`}>
-            {isPassed ? 'Уровень пройден!' : 'Уровень завершён'}
-          </h2>
-          
-          <div className="space-y-4 mb-8">
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-              <div className="flex justify-between text-lg mb-2">
-                <span className="text-gray-700">Целей всего:</span>
-                <span className="font-bold text-gray-900">{allTargets.length}</span>
-              </div>
-              <div className="flex justify-between text-lg mb-2">
-                <span className="text-gray-700">Попаданий:</span>
-                <span className="font-bold text-green-700">{finalStats.hits}</span>
-              </div>
-              <div className="flex justify-between text-lg mb-2">
-                <span className="text-gray-700">Промахов:</span>
-                <span className="font-bold text-red-600">{finalStats.misses}</span>
-              </div>
-              <div className="flex justify-between text-lg pt-3 border-t border-blue-200">
-                <span className="text-gray-700 font-semibold">Точность:</span>
-                <span className={`font-bold text-2xl ${isPassed ? 'text-blue-700' : 'text-orange-600'}`}>
-                  {accuracy.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex justify-between text-lg bg-gray-50 p-3 rounded-lg">
-              <span className="text-gray-600">Требовалось:</span>
-              <span className="font-bold text-gray-800">{level.requiredAccuracy}%</span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => onComplete()}
-            className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl text-xl font-semibold hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            Вернуться к выбору уровня
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div 
@@ -249,16 +183,18 @@ export const Level2_ClickStatic: React.FC<LevelProps> = ({
 
       {missFeedback.show && missFeedback.position && (
         <div
-          className="absolute bg-red-500 animate-ping z-10"
+          className="absolute z-10"
           style={{
-            left: `${missFeedback.position.x - 1.5}%`,
-            top: `${missFeedback.position.y - 1.5}%`,
-            width: '3%',
-            height: '3%',
-            minWidth: '28px',
-            minHeight: '28px',
+            left: `${missFeedback.position.x}%`,
+            top: `${missFeedback.position.y}%`,
+            width: '40px',
+            height: '40px',
+            marginLeft: '-20px',
+            marginTop: '-20px',
             borderRadius: '50%',
-            boxShadow: '0 0 20px rgba(239, 68, 68, 0.8)'
+            backgroundColor: 'rgba(239, 68, 68, 0.3)',
+            border: '3px solid rgb(239, 68, 68)',
+            animation: 'ping 0.5s ease-out'
           }}
         />
       )}
@@ -319,7 +255,7 @@ export const Level2_ClickStatic: React.FC<LevelProps> = ({
         </div>
       )}
 
-      {activeCount > 0 && (
+      {activeCount > 0 && !isLevelComplete && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 
           bg-yellow-100 text-yellow-800 px-8 py-4 rounded-xl shadow-2xl animate-pulse z-20 text-xl font-bold border-2 border-yellow-300">
           👆 Нажимайте на зелёные цели!

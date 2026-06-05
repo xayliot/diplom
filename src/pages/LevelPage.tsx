@@ -73,6 +73,7 @@ export const LevelPage: React.FC = () => {
   
   const [isFinished, setIsFinished] = useState(false);
   const [results, setResults] = useState<LevelResult>({ accuracy: 0, time: 0 });
+  const [attemptKey, setAttemptKey] = useState(0); // Ключ для пересоздания компонента
   
   const pathParts = location.pathname.split('/');
   const moduleType = pathParts[2] as ModuleType;
@@ -103,6 +104,7 @@ export const LevelPage: React.FC = () => {
   const handleRetry = useCallback(() => {
     setIsFinished(false);
     setResults({ accuracy: 0, time: 0 });
+    setAttemptKey(prev => prev + 1); // Меняем ключ для пересоздания
   }, []);
   
   const handleBack = useCallback(() => {
@@ -125,7 +127,7 @@ export const LevelPage: React.FC = () => {
     );
   }
   
-  const handleLevelComplete = (result: any) => {
+ const handleLevelComplete = (result: any) => {
     let accuracy = 0;
     let time = 0;
     
@@ -140,14 +142,17 @@ export const LevelPage: React.FC = () => {
     setResults({ accuracy: roundedAccuracy, time });
     setIsFinished(true);
     
-    const currentLevelNum = levelIndex + 1;
-    const isModuleCompleted = roundedAccuracy >= (level.requiredAccuracy || 80);
+    const passedRequiredAccuracy = roundedAccuracy >= (level.requiredAccuracy || 80);
+    
+    // currentLevel повышаем только если пройдено успешно
+    const newLevel = passedRequiredAccuracy ? levelIndex + 1 : progress.completedModules[moduleType].currentLevel;
     
     updateModuleProgress(moduleType, {
-      currentLevel: currentLevelNum,
+      currentLevel: newLevel,
       accuracy: roundedAccuracy,
-      completed: isModuleCompleted,
-      attempts: (progress.completedModules[moduleType]?.attempts || 0) + 1
+      completed: passedRequiredAccuracy,
+      attempts: (progress.completedModules[moduleType]?.attempts || 0) + 1,
+      levelId: String(level.id) // ← ДОБАВЛЕНО
     });
   };
   
@@ -156,6 +161,7 @@ export const LevelPage: React.FC = () => {
     if (nextLevel) {
       setIsFinished(false);
       setResults({ accuracy: 0, time: 0 });
+      setAttemptKey(prev => prev + 1); // Меняем ключ
       navigate(`/module/${moduleType}/${nextLevel.id}`);
     } else {
       navigate(backPath);
@@ -192,6 +198,7 @@ export const LevelPage: React.FC = () => {
       
       <div className="flex-1 relative">
         <TrainerComponent
+          key={`${moduleType}-${levelId}-${attemptKey}`} // Ключ для пересоздания
           level={level}
           onComplete={handleLevelComplete}
           onExit={handleBack}

@@ -65,7 +65,7 @@ export const KEYBOARD_LEVELS = [
     title: 'Простые слова', 
     description: 'Тренировка на коротких и частотных словах для закрепления навыка.',
     targetWpm: 40, 
-    minAccuracy: 95, 
+    minAccuracy: 70, 
     content: WORD_LISTS.ru 
   },
   { 
@@ -73,8 +73,8 @@ export const KEYBOARD_LEVELS = [
     difficulty: 3, 
     title: 'Фразы', 
     description: 'Короткие предложения с пробелами и простыми знаками препинания.',
-    targetWpm: 5, 
-    minAccuracy: 9, 
+    targetWpm: 50, 
+    minAccuracy: 60, 
     content: PHRASES_LIST.ru 
   },
   { 
@@ -82,8 +82,8 @@ export const KEYBOARD_LEVELS = [
     difficulty: 4, 
     title: 'Слепой метод', 
     description: 'Сложные тексты для отработки полноценной десятипальцевой печати.',
-    targetWpm: 6, 
-    minAccuracy: 9, 
+    targetWpm: 60, 
+    minAccuracy: 70, 
     content: [...PHRASES_LIST.ru, ...WORD_LISTS.ru] 
   },
 ];

@@ -16,10 +16,11 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
   const [targets, setTargets] = useState<MovingTarget[]>([]);
   const [hitCount, setHitCount] = useState(0);
   const [missCount, setMissCount] = useState(0);
-  const [showCompletion, setShowCompletion] = useState(false);
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
   const [spawnedCount, setSpawnedCount] = useState(0);
   const [missFeedback, setMissFeedback] = useState<{show: boolean; x: number; y: number} | null>(null);
+  const [isLevelComplete, setIsLevelComplete] = useState(false);
+  const [startTime] = useState(Date.now);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
@@ -28,7 +29,7 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
   const spawnedCountRef = useRef(0);
 
   const TOTAL_TARGETS = level.targetCount || 12;
-  const TARGET_RADIUS = 28;
+  const TARGET_RADIUS = 40;
   const MOVE_SPEED = 2.5;
 
   const updateContainerSize = useCallback(() => {
@@ -109,7 +110,17 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
   }, [containerSize]);
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {
+      setTargets([]);
+      setHitCount(0);
+      setMissCount(0);
+      setSpawnedCount(0);
+      spawnedCountRef.current = 0;
+      setIsLevelComplete(false);
+      setMissFeedback(null);
+      return;
+    }
+    
     const animate = () => {
       updateTargetPositions();
       animationRef.current = requestAnimationFrame(animate);
@@ -125,7 +136,7 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
   }, [isActive, spawnTarget, updateTargetPositions]);
 
   const handleContainerMouseDown = (e: React.MouseEvent) => {
-    if (!isActive || showCompletion) return;
+    if (!isActive || isLevelComplete) return;
     
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -170,51 +181,16 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
   }, [isActive, onTargetMiss]);
 
   useEffect(() => {
-    if (spawnedCount === TOTAL_TARGETS && targets.length === 0 && !showCompletion && spawnedCount > 0) {
-      setShowCompletion(true);
+    if (spawnedCount === TOTAL_TARGETS && targets.length === 0 && !isLevelComplete && spawnedCount > 0) {
+      setIsLevelComplete(true);
+      
+      const totalAttempts = hitCount + missCount;
+      const accuracy = totalAttempts > 0 ? (hitCount / totalAttempts) * 100 : 0;
+      const timeElapsed = (Date.now() - startTime) / 1000;
+      
+      onComplete({ accuracy, timeElapsed });
     }
-  }, [targets, spawnedCount, TOTAL_TARGETS, showCompletion]);
-
-
-  if (showCompletion) {
-    const accuracy = hitCount + missCount > 0 ? (hitCount / (hitCount + missCount)) * 100 : 0;
-    const isPassed = accuracy >= (level.requiredAccuracy || 70);
-
-    return (
-      <div className="relative w-full h-full min-h-125 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-        <div className="bg-white p-10 rounded-2xl shadow-2xl text-center max-w-lg border-2 border-gray-200">
-          <div className="text-7xl mb-6">{isPassed ? '🏆' : '📊'}</div>
-          <h2 className={`text-3xl font-bold mb-4 ${isPassed ? 'text-green-700' : 'text-orange-600'}`}>
-            {isPassed ? 'Уровень пройден!' : 'Уровень завершён'}
-          </h2>
-          <div className="space-y-4 mb-8">
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-200 text-left">
-              <div className="flex justify-between text-lg mb-2">
-                <span className="text-gray-700">Попаданий:</span>
-                <span className="font-bold text-green-700">{hitCount}</span>
-              </div>
-              <div className="flex justify-between text-lg mb-2">
-                <span className="text-gray-700">Промахов:</span>
-                <span className="font-bold text-red-600">{missCount}</span>
-              </div>
-              <div className="flex justify-between text-lg pt-3 border-t border-blue-200">
-                <span className="text-gray-700 font-semibold">Точность:</span>
-                <span className={`font-bold text-2xl ${isPassed ? 'text-blue-700' : 'text-orange-600'}`}>
-                  {Math.round(accuracy)}%
-                </span>
-              </div>
-            </div>
-          </div>
-          <button 
-            onClick={() => onComplete()} 
-            className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl text-xl font-semibold hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            Вернуться к выбору уровня
-          </button>
-        </div>
-      </div>
-    );
-  }
+  }, [targets, spawnedCount, TOTAL_TARGETS, isLevelComplete, hitCount, missCount, onComplete, startTime]);
 
   return (
     <div 
@@ -239,13 +215,18 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
 
       {missFeedback && (
         <div
-          className="absolute bg-red-500/50 animate-ping z-10"
+          className="absolute z-10"
           style={{
-            left: missFeedback.x - 15,
-            top: missFeedback.y - 15,
-            width: 30,
-            height: 30,
+            left: `${missFeedback.x}px`,
+            top: `${missFeedback.y}px`,
+            width: '40px',
+            height: '40px',
+            marginLeft: '-20px',
+            marginTop: '-20px',
             borderRadius: '50%',
+            backgroundColor: 'rgba(239, 68, 68, 0.3)',
+            border: '3px solid rgb(239, 68, 68)',
+            animation: 'ping 0.5s ease-out'
           }}
         />
       )}
@@ -284,11 +265,13 @@ export const Level3_ClickDynamic: React.FC<LevelProps> = ({
         </div>
       </div>
 
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
-        <div className="bg-yellow-100 border-2 border-yellow-300 px-6 py-2 rounded-full text-yellow-800 font-bold text-sm uppercase tracking-widest shadow-lg animate-pulse">
-          🎯 Уничтожьте все движущиеся цели
+      {!isLevelComplete && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
+          <div className="bg-yellow-100 border-2 border-yellow-300 px-6 py-2 rounded-full text-yellow-800 font-bold text-sm uppercase tracking-widest shadow-lg animate-pulse">
+            🎯 Уничтожьте все движущиеся цели
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1,8 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/authContext';
 
 export const Welcome: React.FC = () => {
   const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
 
   const cards = [
     {
@@ -37,6 +39,32 @@ export const Welcome: React.FC = () => {
   return (
     <div className="h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-96 bg-linear-to-b from-indigo-50/50 to-transparent -z-10" />
+
+      {/* Хедер с профилем */}
+      <header className="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div className="text-sm text-slate-400 font-medium">
+          👨‍🎓 {currentUser?.fullName}
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            to="/profile"
+            className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200 hover:border-indigo-200 hover:shadow-md"
+          >
+            <span className="text-lg">⚙️</span>
+            <span>Настройки</span>
+          </Link>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="flex items-center gap-2 text-sm font-medium text-slate-400 hover:text-red-500 transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200 hover:border-red-200 hover:shadow-md"
+          >
+            <span className="text-lg">🚪</span>
+            <span>Выйти</span>
+          </button>
+        </div>
+      </header>
 
       <div className="container mx-auto px-6 py-8 flex flex-col grow justify-center">
         <div className="text-center mb-12 animate-in fade-in slide-in-from-top-8 duration-700">

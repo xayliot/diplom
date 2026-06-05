@@ -4,14 +4,13 @@ export interface LevelProps {
   level: MouseLevel;
   onTargetHit: (targetId: string) => void;
   onTargetMiss: () => void;
-  onComplete: () => void;
+  onComplete: (result?: { accuracy: number; timeElapsed?: number }) => void;
   isActive: boolean;
 }
 
 export interface TrackingLevelProps extends LevelProps {
   trajectory: Position[];
 }
-
 
 export interface DropZone {
   id: string;
