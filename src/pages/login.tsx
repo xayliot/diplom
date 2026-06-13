@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/authContext';
 
@@ -7,19 +7,8 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, isAuthenticated, isAdmin } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
-
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      if (isAdmin) {
-        navigate('/admin/groups', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
-    }
-  }, [isAuthenticated, isAdmin, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,13 +17,15 @@ export function Login() {
 
     const result = await login(username, password);
 
-    if (result.success) {
-      // Редирект в зависимости от роли
-      if (result.user?.role === 'admin') {
-        navigate('/admin/groups');
-      } else {
-        navigate('/');
-      }
+    if (result.success && result.user) {
+      // Небольшая задержка, чтобы React успел обновить состояние
+      setTimeout(() => {
+        if (result.user?.role === 'admin') {
+          navigate('/admin/groups', { replace: true });
+        } else {
+          navigate('/', { replace: true });
+        }
+      }, 100);
     } else {
       setError(result.error || 'Ошибка входа');
     }
@@ -102,11 +93,6 @@ export function Login() {
           <p>👨‍🎓 Студент: <code className="text-purple-400">student1 / student123</code></p>
         </div>
 
-        <div className="mt-4 text-center">
-          <Link to="/" className="text-slate-400 hover:text-white transition text-sm">
-            ← На главную
-          </Link>
-        </div>
       </div>
     </div>
   );

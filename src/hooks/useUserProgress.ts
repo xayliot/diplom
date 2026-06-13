@@ -103,43 +103,46 @@ export const useUserProgress = (userId: string = 'user-1') => {
     localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
   };
 
-  const updateModuleProgress = useCallback((moduleType: ModuleId, data: {
-    currentLevel?: number;
-    accuracy?: number;
-    completed?: boolean;
-    attempts?: number;
-    levelId?: string;
-  }) => {
-    setProgress(prev => {
-      if (!prev) return prev;
-      
-      const moduleProgress = prev.completedModules[moduleType];
-      
-      const updated: UserProgress = {
-        ...prev,
-        completedModules: {
-          ...prev.completedModules,
-          [moduleType]: {
-            ...moduleProgress,
-            currentLevel: data.currentLevel ?? moduleProgress.currentLevel,
-            accuracy: data.accuracy ?? moduleProgress.accuracy,
-            completed: data.completed ?? moduleProgress.completed,
-            attempts: data.attempts ?? moduleProgress.attempts,
-            levelAccuracies: {
-              ...moduleProgress.levelAccuracies,
-              ...(data.levelId && data.accuracy !== undefined 
-                ? { [data.levelId]: data.accuracy } 
-                : {}
-              )
-            }
+const updateModuleProgress = useCallback((moduleType: ModuleId, data: {
+  currentLevel?: number;
+  accuracy?: number;
+  completed?: boolean;
+  attempts?: number;
+  levelId?: string;
+}) => {
+  setProgress(prev => {
+    if (!prev) return prev;
+    
+    const moduleProgress = prev.completedModules[moduleType];
+    const newCurrentLevel = data.currentLevel !== undefined 
+      ? Math.max(moduleProgress.currentLevel, data.currentLevel)  // ← НЕ УМЕНЬШАЕМ!
+      : moduleProgress.currentLevel;
+    
+    const updated: UserProgress = {
+      ...prev,
+      completedModules: {
+        ...prev.completedModules,
+        [moduleType]: {
+          ...moduleProgress,
+          currentLevel: newCurrentLevel,  // ← используем защищённое значение
+          accuracy: data.accuracy ?? moduleProgress.accuracy,
+          completed: data.completed ?? moduleProgress.completed,
+          attempts: data.attempts ?? moduleProgress.attempts,
+          levelAccuracies: {
+            ...moduleProgress.levelAccuracies,
+            ...(data.levelId && data.accuracy !== undefined 
+              ? { [data.levelId]: data.accuracy } 
+              : {}
+            )
           }
         }
-      };
-      
-      localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
-      return updated;
-    });
-  }, [userId]);
+      }
+    };
+    
+    localStorage.setItem(`progress_${userId}`, JSON.stringify(updated));
+    return updated;
+  });
+}, [userId]);
 
   const updateSettings = (newSettings: Partial<UserSettings>) => {
     if (!progress) return;

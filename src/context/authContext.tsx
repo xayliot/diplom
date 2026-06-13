@@ -6,8 +6,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (username: string, password: string) => Promise<{
-    user: any; success: boolean; error?: string 
-}>;
+    success: boolean;
+    user?: Omit<User, 'password'>;
+    error?: string;
+  }>;
   logout: () => void;
 }
 
@@ -66,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { password: _, ...safeUser } = user;
       setAuthState({ currentUser: safeUser, isAuthenticated: true });
       localStorage.setItem('auth_user', JSON.stringify(safeUser));
-      return { success: true };
+      return { success: true, user: safeUser };
     }
 
     return { success: false, error: 'Неверный логин или пароль' };
